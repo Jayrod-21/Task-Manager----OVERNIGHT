@@ -9,7 +9,8 @@
  */
 
 import { useState, useEffect } from 'react'
-import { getDashboardSummary, getUrgentTasks, getTodayTasks, getThisWeekTasks } from '../api/client'
+import { useNavigate } from 'react-router-dom'
+import { getDashboardSummary, getUrgentTasks, getTodayTasks, getThisWeekTasks, getWorkspaces } from '../api/client'
 import UrgentBadge from './UrgentBadge'
 import TaskModal from './TaskModal'
 import { STATUS_COLORS, PRIORITY_COLORS } from '../constants/colors'
@@ -21,6 +22,8 @@ function Dashboard() {
   const [weekTasks, setWeekTasks] = useState([])
   const [selectedTask, setSelectedTask] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [workspaces, setWorkspaces] = useState([])
+  const navigate = useNavigate()
 
   useEffect(() => {
     loadDashboard()
@@ -38,6 +41,9 @@ function Dashboard() {
       setUrgentTasks(urgent)
       setTodayTasks(today)
       setWeekTasks(week)
+      // Load workspaces for the getting-started section
+      const ws = await getWorkspaces()
+      setWorkspaces(ws)
     } catch (err) {
       console.error('Failed to load dashboard:', err)
     } finally {
@@ -93,6 +99,36 @@ function Dashboard() {
         <StatCard label="Due Today" value={summary?.total_today || 0} />
         <StatCard label="Due This Week" value={summary?.total_this_week || 0} />
       </div>
+
+      {/* Getting started guidance when no tasks exist */}
+      {summary?.total_tasks === 0 && (
+        <div className="bg-vault-surface border border-vault-border rounded-lg p-6 mb-8">
+          <h2 className="text-lg font-medium text-vault-text mb-2">Getting Started</h2>
+          <p className="text-sm text-vault-muted mb-4">
+            Welcome to Vault! To start managing tasks:
+          </p>
+          <ol className="text-sm text-vault-muted space-y-2 mb-4 list-decimal list-inside">
+            <li>Click a <strong className="text-vault-text">workspace name</strong> in the sidebar to open it</li>
+            <li>Create a <strong className="text-vault-text">sub-workspace</strong> (e.g. "Project Alpha" inside "Stats Lab")</li>
+            <li>Click into the sub-workspace and use <strong className="text-vault-text">+ Add Task</strong> to create tasks</li>
+            <li>Or press <strong className="text-vault-text">Ctrl+K</strong> to quick-add a task from anywhere</li>
+          </ol>
+          <div className="flex flex-wrap gap-2">
+            {workspaces.slice(0, 4).map(ws => (
+              <button
+                key={ws.id}
+                className="px-3 py-1.5 text-sm bg-vault-border text-vault-text rounded hover:bg-vault-accent hover:text-white"
+                onClick={() => navigate(`/workspace-overview/${ws.id}`)}
+              >
+                {ws.name}
+              </button>
+            ))}
+            {workspaces.length > 4 && (
+              <span className="px-3 py-1.5 text-sm text-vault-muted">+{workspaces.length - 4} more in sidebar</span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Urgent Tasks */}
       <Section title="Urgent Tasks" count={urgentTasks.length}>

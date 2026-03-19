@@ -1,8 +1,9 @@
 /**
  * Root application component.
  *
- * Sets up routing between the Home (dashboard) and Workspace pages,
- * renders the persistent Sidebar, and manages the QuickAdd overlay.
+ * Sets up routing between the Home (dashboard), Workspace Landing,
+ * and Sub-Workspace pages. Renders the persistent Sidebar and
+ * manages the QuickAdd overlay.
  *
  * @component
  */
@@ -13,6 +14,7 @@ import Sidebar from './components/Sidebar'
 import QuickAdd from './components/QuickAdd'
 import Home from './pages/Home'
 import Workspace from './pages/Workspace'
+import WorkspacePage from './pages/WorkspaceLanding'
 
 function App() {
   const [quickAddOpen, setQuickAddOpen] = useState(false)
@@ -41,6 +43,10 @@ function App() {
       <main className="flex-1 overflow-y-auto">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route
+            path="/workspace-overview/:workspaceId"
+            element={<WorkspacePage onRefresh={refreshSidebar} />}
+          />
           <Route
             path="/workspace/:subWorkspaceId"
             element={<Workspace onRefresh={refreshSidebar} />}

@@ -2,7 +2,8 @@
  * Sidebar component — workspace navigation tree.
  *
  * Displays all workspaces as collapsible sections with their
- * sub-workspaces nested underneath. Provides inline forms for
+ * sub-workspaces nested underneath. Clicking a workspace name
+ * navigates to its landing page. Provides inline forms for
  * creating new workspaces and sub-workspaces.
  *
  * @component
@@ -23,7 +24,6 @@ function Sidebar({ refreshKey, onRefresh }) {
   const [newWorkspaceName, setNewWorkspaceName] = useState('')
   const [addingSubTo, setAddingSubTo] = useState(null)
   const [newSubName, setNewSubName] = useState('')
-  const [hoveredWorkspace, setHoveredWorkspace] = useState(null)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -36,6 +36,25 @@ function Sidebar({ refreshKey, onRefresh }) {
     try {
       const data = await getWorkspaces()
       setWorkspaces(data)
+
+      // Auto-expand all workspaces and load their sub-workspaces
+      const expandState = {}
+      const subState = {}
+      for (const ws of data) {
+        expandState[ws.id] = true
+        try {
+          const subs = await getSubWorkspaces(ws.id)
+          subState[ws.id] = subs
+        } catch {
+          subState[ws.id] = []
+        }
+      }
+      setExpanded(prev => {
+        // Only auto-expand on first load, preserve user toggles after
+        const hasAny = Object.keys(prev).length > 0
+        return hasAny ? prev : expandState
+      })
+      setSubWorkspaces(prev => ({ ...prev, ...subState }))
     } catch (err) {
       console.error('Failed to load workspaces:', err)
     }
@@ -75,13 +94,15 @@ function Sidebar({ refreshKey, onRefresh }) {
     e.preventDefault()
     if (!newSubName.trim()) return
     try {
-      await createSubWorkspace(wsId, { name: newSubName.trim() })
+      const newSub = await createSubWorkspace(wsId, { name: newSubName.trim() })
       setNewSubName('')
       setAddingSubTo(null)
       // Reload sub-workspaces for this workspace
       const subs = await getSubWorkspaces(wsId)
       setSubWorkspaces(prev => ({ ...prev, [wsId]: subs }))
       if (onRefresh) onRefresh()
+      // Navigate into the new sub-workspace
+      navigate(`/workspace/${newSub.id}`)
     } catch (err) {
       console.error('Failed to create sub-workspace:', err)
     }
@@ -89,6 +110,9 @@ function Sidebar({ refreshKey, onRefresh }) {
 
   /** Check if a sub-workspace is currently active based on the URL */
   const isActiveSub = (subId) => location.pathname === `/workspace/${subId}`
+
+  /** Check if a workspace landing page is active */
+  const isActiveWorkspace = (wsId) => location.pathname === `/workspace-overview/${wsId}`
 
   return (
     <aside className="w-60 h-screen bg-vault-surface border-r border-vault-border flex flex-col overflow-y-auto shrink-0">
@@ -100,6 +124,7 @@ function Sidebar({ refreshKey, onRefresh }) {
         >
           Vault
         </h1>
+        <p className="text-xs text-vault-muted mt-0.5">Ctrl+K to quick-add</p>
       </div>
 
       {/* Workspace list */}
@@ -108,43 +133,60 @@ function Sidebar({ refreshKey, onRefresh }) {
           <div key={ws.id}>
             {/* Workspace header row */}
             <div
-              className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-vault-border/50 group"
-              onMouseEnter={() => setHoveredWorkspace(ws.id)}
-              onMouseLeave={() => setHoveredWorkspace(null)}
+              className={`flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-vault-border/50 ${
+                isActiveWorkspace(ws.id) ? 'bg-vault-border/50' : ''
+              }`}
             >
-              <div
-                className="flex items-center gap-2 flex-1 min-w-0"
-                onClick={() => toggleExpand(ws.id)}
-              >
-                <span className="text-xs text-vault-muted">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {/* Expand/collapse arrow */}
+                <span
+                  className="text-xs text-vault-muted cursor-pointer hover:text-vault-text"
+                  onClick={(e) => { e.stopPropagation(); toggleExpand(ws.id) }}
+                >
                   {expanded[ws.id] ? '▼' : '▶'}
                 </span>
                 <span
                   className="w-2 h-2 rounded-full shrink-0"
                   style={{ backgroundColor: ws.color || '#6B7280' }}
                 />
-                <span className="text-sm text-vault-text truncate">{ws.name}</span>
-              </div>
-              {/* Add sub-workspace button — visible on hover */}
-              {hoveredWorkspace === ws.id && (
-                <button
-                  className="text-vault-muted hover:text-vault-text text-xs px-1"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    if (!expanded[ws.id]) toggleExpand(ws.id)
-                    setAddingSubTo(ws.id)
-                    setNewSubName('')
-                  }}
-                  title="Add sub-workspace"
+                {/* Clicking workspace name goes to landing page */}
+                <span
+                  className="text-sm text-vault-text truncate hover:text-vault-accent"
+                  onClick={() => navigate(`/workspace-overview/${ws.id}`)}
                 >
-                  +
-                </button>
-              )}
+                  {ws.name}
+                </span>
+              </div>
+              {/* Always-visible add sub-workspace button */}
+              <button
+                className="text-vault-muted hover:text-vault-text text-xs px-1 shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (!expanded[ws.id]) toggleExpand(ws.id)
+                  setAddingSubTo(ws.id)
+                  setNewSubName('')
+                }}
+                title="Add sub-workspace"
+              >
+                +
+              </button>
             </div>
 
             {/* Sub-workspaces */}
             {expanded[ws.id] && (
               <div className="ml-4">
+                {(subWorkspaces[ws.id] || []).length === 0 && addingSubTo !== ws.id && (
+                  <div
+                    className="px-3 py-1.5 text-xs text-vault-muted italic cursor-pointer hover:text-vault-accent"
+                    onClick={() => {
+                      setAddingSubTo(ws.id)
+                      setNewSubName('')
+                    }}
+                  >
+                    + Add a sub-workspace to get started
+                  </div>
+                )}
+
                 {(subWorkspaces[ws.id] || []).map(sub => (
                   <div
                     key={sub.id}
