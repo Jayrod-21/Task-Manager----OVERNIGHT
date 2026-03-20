@@ -6,16 +6,16 @@ Each workspace is a sealed container — deleting one cascades to all
 sub-workspaces and tasks within it.
 """
 
-from uuid import UUID
 from typing import List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models.workspace import Workspace
 from models.sub_workspace import SubWorkspace
-from schemas.workspace import WorkspaceCreate, WorkspaceUpdate, WorkspaceResponse
+from models.workspace import Workspace
+from schemas.workspace import WorkspaceCreate, WorkspaceResponse, WorkspaceUpdate
 
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
 

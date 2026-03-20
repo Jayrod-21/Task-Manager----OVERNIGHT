@@ -5,17 +5,21 @@ Sub-workspaces belong to a parent workspace and contain tasks.
 Deleting a sub-workspace cascades to all its tasks and subtasks.
 """
 
-from uuid import UUID
 from typing import List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models.workspace import Workspace
 from models.sub_workspace import SubWorkspace
 from models.task import Task
-from schemas.sub_workspace import SubWorkspaceCreate, SubWorkspaceUpdate, SubWorkspaceResponse
+from models.workspace import Workspace
+from schemas.sub_workspace import (
+    SubWorkspaceCreate,
+    SubWorkspaceResponse,
+    SubWorkspaceUpdate,
+)
 
 router = APIRouter(tags=["sub-workspaces"])
 

@@ -6,19 +6,19 @@ a sub-workspace, plus global views for urgent, today, and this-week tasks.
 Subtask management is also handled here.
 """
 
-from uuid import UUID
 from datetime import date, timedelta
 from typing import List, Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
 from database import get_db
 from models.sub_workspace import SubWorkspace
-from models.task import Task, PriorityEnum, StatusEnum
 from models.subtask import Subtask
-from schemas.task import TaskCreate, TaskUpdate, TaskResponse
-from schemas.subtask import SubtaskCreate, SubtaskUpdate, SubtaskResponse
+from models.task import PriorityEnum, StatusEnum, Task
+from schemas.subtask import SubtaskCreate, SubtaskResponse, SubtaskUpdate
+from schemas.task import TaskCreate, TaskResponse, TaskUpdate
 
 router = APIRouter(tags=["tasks"])
 

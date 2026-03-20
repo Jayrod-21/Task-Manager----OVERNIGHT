@@ -5,9 +5,9 @@ Handles validation of all task fields including enums,
 dates, JSONB tags, and nested subtask data.
 """
 
-from datetime import datetime, date
+from datetime import date, datetime
+from typing import List, Optional
 from uuid import UUID
-from typing import Optional, List
 
 from pydantic import BaseModel, Field
 

@@ -5,12 +5,12 @@ Tasks belong to a sub-workspace and contain all trackable fields:
 priority, status, due date, tags, urgency flag, notes, and subtasks.
 """
 
-import uuid
 import enum
+import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, String, Text, DateTime, Date, Boolean, Enum, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Boolean, Column, Date, DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 
 from database import Base
