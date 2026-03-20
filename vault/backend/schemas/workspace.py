@@ -6,8 +6,8 @@ returning workspace records via the API.
 """
 
 from datetime import datetime
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 

@@ -8,13 +8,12 @@ model metadata so it can auto-generate migrations.
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
-from alembic import context
-
-from config import settings
-from database import Base
 
 # Import all models so their tables are registered with Base.metadata
 import models  # noqa: F401
+from alembic import context
+from config import settings
+from database import Base
 
 # Alembic Config object for access to .ini values
 config = context.config

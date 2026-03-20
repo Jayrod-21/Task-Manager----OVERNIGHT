@@ -7,22 +7,20 @@ migrations and seeding on startup via the lifespan context manager.
 
 from contextlib import asynccontextmanager
 
+from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from alembic.config import Config
-from alembic import command
-
-from database import engine, Base, SessionLocal
-from seed import seed_workspaces
 
 # Import models so SQLAlchemy registers all tables
 import models  # noqa: F401
-
-from routers.workspaces import router as workspaces_router
+from alembic import command
+from database import Base, SessionLocal, engine
+from routers.ai_helper import router as ai_helper_router
+from routers.dashboard import router as dashboard_router
 from routers.sub_workspaces import router as sub_workspaces_router
 from routers.tasks import router as tasks_router
-from routers.dashboard import router as dashboard_router
-from routers.ai_helper import router as ai_helper_router
+from routers.workspaces import router as workspaces_router
+from seed import seed_workspaces
 
 
 @asynccontextmanager
