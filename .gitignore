@@ -1,0 +1,22 @@
+# Root-level guard (the app under vault/ has its own .gitignore too)
+
+# Secrets / environment
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+credentials*.json
+service-account*.json
+
+# Dependencies / build
+node_modules/
+dist/
+build/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
